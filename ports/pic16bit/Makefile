@@ -6,11 +6,11 @@ QSTR_DEFS = qstrdefsport.h
 # include py core make definitions
 include $(TOP)/py/py.mk
 
-XC16 = /opt/microchip/xc16/v1.24
+XC16 = /opt/microchip/xc16/v1.32
 CROSS_COMPILE = $(XC16)/bin/xc16-
 
-PARTFAMILY = dsPIC33F
-PART = 33FJ256GP506
+PARTFAMILY = dsPIC33E
+PART = 33EP512MC202
 
 INC += -I.
 INC += -I$(TOP)
@@ -18,8 +18,8 @@ INC += -I$(BUILD)
 INC += -I$(XC16)/include
 INC += -I$(XC16)/support/$(PARTFAMILY)/h
 
-CFLAGS_PIC16BIT = -mcpu=$(PART) -mlarge-code
-CFLAGS = $(INC) -Wall -Werror -std=gnu99 -nostdlib $(CFLAGS_PIC16BIT) $(COPT)
+CFLAGS_PIC16BIT = -mcpu=$(PART) -mlarge-code -msmall-data
+CFLAGS = $(INC) -Wall -std=gnu99 -nostdlib $(CFLAGS_PIC16BIT) $(COPT)
 
 #Debugging/Optimization
 ifeq ($(DEBUG), 1)
@@ -29,7 +29,7 @@ CFLAGS += -O1 -DNDEBUG
 endif
 
 LDFLAGS = --heap=0 -nostdlib -T $(XC16)/support/$(PARTFAMILY)/gld/p$(PART).gld -Map=$@.map --cref -p$(PART)
-LIBS = -L$(XC16)/lib -L$(XC16)/lib/$(PARTFAMILY) -lc -lm -lpic30 -lp$(PART)
+LIBS = -L$(XC16)/lib -L$(XC16)/lib/$(PARTFAMILY) -lc -lm -lpic30
 
 SRC_C = \
 	main.c \

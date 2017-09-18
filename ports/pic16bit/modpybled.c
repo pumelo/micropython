@@ -57,21 +57,21 @@ STATIC mp_obj_t pyb_led_make_new(const mp_obj_type_t *type, size_t n_args, size_
 
 mp_obj_t pyb_led_on(mp_obj_t self_in) {
     pyb_led_obj_t *self = self_in;
-    led_state(LED_ID(self), 1);
+    led_state(1);
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(pyb_led_on_obj, pyb_led_on);
 
 mp_obj_t pyb_led_off(mp_obj_t self_in) {
     pyb_led_obj_t *self = self_in;
-    led_state(LED_ID(self), 0);
+    led_state(0);
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(pyb_led_off_obj, pyb_led_off);
 
 mp_obj_t pyb_led_toggle(mp_obj_t self_in) {
     pyb_led_obj_t *self = self_in;
-    led_toggle(LED_ID(self));
+    led_toggle();
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(pyb_led_toggle_obj, pyb_led_toggle);

@@ -24,7 +24,7 @@
  * THE SOFTWARE.
  */
 
-#include <p33Fxxxx.h>
+#include <xc.h>
 #include "board.h"
 
 /********************************************************************/
@@ -53,54 +53,40 @@ void cpu_init(void) {
 /********************************************************************/
 // LEDs
 
-#define RED_LED_TRIS _TRISC15
-#define YELLOW_LED_TRIS _TRISC13
-#define GREEN_LED_TRIS _TRISC14
+#define LED_TRIS TRISBbits.TRISB11
 
-#define RED_LED _LATC15
-#define YELLOW_LED _LATC13
-#define GREEN_LED _LATC14
+
+#define LED LATBbits.LATB11
 
 #define LED_ON (0)
 #define LED_OFF (1)
 
 void led_init(void) {
     // set led GPIO as outputs
-    RED_LED_TRIS = 0;
-    YELLOW_LED_TRIS = 0;
-    GREEN_LED_TRIS = 0;
+    LED_TRIS = 0;
 
     // turn off the LEDs
-    RED_LED = LED_OFF;
-    YELLOW_LED = LED_OFF;
-    GREEN_LED = LED_OFF;
+    LED = LED_ON;
+
 }
 
-void led_state(int led, int state) {
+void led_state(int state) {
     int val = state ? LED_ON : LED_OFF;
-    switch (led) {
-        case 1: RED_LED = val; break;
-        case 2: YELLOW_LED = val; break;
-        case 3: GREEN_LED = val; break;
-    }
+    LED = val;
 }
 
-void led_toggle(int led) {
-    switch (led) {
-        case 1: RED_LED ^= 1; break;
-        case 2: YELLOW_LED ^= 1; break;
-        case 3: GREEN_LED ^= 1; break;
-    }
+void led_toggle(void) {
+    LED ^= 1;
 }
 
 /********************************************************************/
 // switches
 
-#define SWITCH_S1_TRIS _TRISD8
-#define SWITCH_S2_TRIS _TRISD9
+#define SWITCH_S1_TRIS TRISAbits.TRISA2
+#define SWITCH_S2_TRIS TRISAbits.TRISA3
 
-#define SWITCH_S1 _RD8
-#define SWITCH_S2 _RD9
+#define SWITCH_S1 PORTAbits.RA2
+#define SWITCH_S2 PORTAbits.RA3
 
 void switch_init(void) {
     // set switch GPIO as inputs
@@ -130,6 +116,10 @@ void uart_rx_irq(void) {
 */
 
 void uart_init(void) {
+    // connect remappable pins:
+    TRISBbits.TRISB4 = 1; // Make this an input
+    RPINR18 = 36; // U1RX -> RP36
+    RPOR0 = 1; // U1TX -> RP20
     // baudrate = F_CY / 16 (uxbrg + 1)
     // F_CY = 40MHz for us
     UART1.uxbrg = 64; // 38400 baud

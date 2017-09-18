@@ -27,7 +27,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <p33Fxxxx.h>
+#include <xc.h>
 
 #include "py/compile.h"
 #include "py/runtime.h"
@@ -39,10 +39,20 @@
 #include "board.h"
 #include "modpyb.h"
 
-_FGS(GWRP_OFF & GCP_OFF);
-_FOSCSEL(FNOSC_FRC);
-_FOSC(FCKSM_CSECMD & OSCIOFNC_ON & POSCMD_NONE);
-_FWDT(FWDTEN_OFF);
+#pragma config GWRP = OFF // Do not allow to write to program memory
+// #pragma config GSS = OFF
+// _FGS(GWRP_OFF & GCP_OFF);
+
+#pragma config FNOSC = FRC // Set Clock to Fast RC Oscillator (internal) no clock div
+// _FOSCSEL(FNOSC_FRC);
+
+#pragma config FCKSM = CSECMD // Something with Clock switching enabled or not...
+#pragma config OSCIOFNC = ON // Clock output to OSC2
+#pragma config POSCMD = NONE // ?? Exteral Clock??
+// _FOSC(FCKSM_CSECMD & OSCIOFNC_ON & POSCMD_NONE);
+
+#pragma config FWDTEN = OFF
+// _FWDT(FWDTEN_OFF);
 
 // maximum heap for device with 8k RAM
 static char heap[4600];
@@ -57,11 +67,9 @@ int main(int argc, char **argv) {
 soft_reset:
 
     // flash green led for 150ms to indicate boot
-    led_state(1, 0);
-    led_state(2, 0);
-    led_state(3, 1);
+    led_state(1);
     mp_hal_delay_ms(150);
-    led_state(3, 0);
+    led_state(0);
 
     // init MicroPython runtime
     int stack_dummy;
@@ -70,7 +78,7 @@ soft_reset:
     mp_init();
     mp_hal_init();
     readline_init0();
-
+    printf("Hellou!!!\n");
     // REPL loop
     for (;;) {
         if (pyexec_mode_kind == PYEXEC_MODE_RAW_REPL) {

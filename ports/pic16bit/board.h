@@ -29,8 +29,8 @@
 void cpu_init(void);
 
 void led_init(void);
-void led_state(int led, int state);
-void led_toggle(int led);
+void led_state(int state);
+void led_toggle(void);
 
 void switch_init(void);
 int switch_get(int sw);
