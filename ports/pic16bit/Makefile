@@ -18,7 +18,7 @@ INC += -I$(BUILD)
 INC += -I$(XC16)/include
 INC += -I$(XC16)/support/$(PARTFAMILY)/h
 
-CFLAGS_PIC16BIT = -mcpu=$(PART) -mlarge-code -msmall-data
+CFLAGS_PIC16BIT = -mcpu=$(PART) -mlarge-code
 CFLAGS = $(INC) -Wall -std=gnu99 -nostdlib $(CFLAGS_PIC16BIT) $(COPT)
 
 #Debugging/Optimization
