@@ -26,15 +26,17 @@
  * THE SOFTWARE.
  */
 
-#if !MICROPY_ESP_IDF_4
 #include "py/runtime.h"
 #include "py/mphal.h"
 #include "py/objtype.h"
 #include "py/stream.h"
 #include "netutils.h"
 #include "modmachine.h"
-
+#if !MICROPY_ESP_IDF_4
 #include "netif/ppp/ppp.h"
+#else
+#include "netif/ppp/pppapi.h"
+#endif
 #include "netif/ppp/pppos.h"
 #include "lwip/err.h"
 #include "lwip/sockets.h"
@@ -285,4 +287,3 @@ const mp_obj_type_t ppp_if_type = {
     .locals_dict = (mp_obj_dict_t *)&ppp_if_locals_dict,
 };
 
-#endif // !MICROPY_ESP_IDF_4

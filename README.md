@@ -1,3 +1,72 @@
+### ESP32 with napt as a internet access point
+
+This branch provides nat for the esp32.
+
+This is for testing only. It's very rude it's very rought ...
+
+I Think there are a few restrictions but I am unsure:
+- The interfaces need to be intialized before calling `esp_enable_napt`
+- If the interfaces are destroyed first and after that napt is deinitialized it results in double free?
+  Which leads to memory corruption?
+
+
+example code from micropython:
+```
+import machine
+import network
+
+u = machine.UART(1, baudrate=921600, stop=1, rx=25, tx=26)
+
+w = network.WLAN(network.AP_IF)
+w.config(essid='mp', password='micropython', authmode=network.AUTH_WPA2_PSK)
+w.ifconfig(('192.168.4.1', '255.255.255.0', '192.168.4.1', '8.8.8.8'))
+w.active(True)
+
+def send_print(cmd, sleep_ms=500):
+    u.write(cmd+b'\r\n')
+    # print(cmd)
+    time.sleep_ms(sleep_ms)
+    while True:
+        k = u.readline()
+        if not k:
+            break
+        print(k)
+
+send_print(b'ATCFUN=1,1')
+send_print(b'ATI')
+send_print(b'AT+CREG?') # registered with network?
+send_print(b'AT+CGATT=1') # attach to network
+send_print(b'AT+CGACT=0,1') # deactivate pdp context 1
+send_print(b'AT+CGDATA="PPP",1') # use a pdp which is not active!!!
+
+ppp = network.PPP(u)
+ppp.active(True)
+ppp.connect(authmode=ppp.AUTH_PAP, username='', password='')
+time.sleep(2)
+print(ppp.ifconfig())
+
+w.enable_napt(True)
+
+```
+
+# Build with these commands in docker espressif/idf:release-v4.0
+
+
+    - path=$(pwd)
+    - cd /opt/esp/idf
+    - git checkout 463a9d8b7f9af8205222b80707f9bdbba7c530e1
+    - git submodule update
+    - cd components/lwip/lwip
+    - git fetch
+    - git checkout 2.1.2-esp
+    - git pull
+    - sed -i "s/return open(filename)/return open(filename, encoding='UTF-8')/g" /opt/esp/idf/tools/kconfig_new/kconfiglib.py
+    - cd $path
+    - cd mpy-cross
+    - make
+    - cd ../ports/esp32
+    - make PYTHON=python3 PYTHON2=python3
+
 [![Build Status](https://travis-ci.com/micropython/micropython.png?branch=master)](https://travis-ci.com/micropython/micropython) [![Coverage Status](https://coveralls.io/repos/micropython/micropython/badge.png?branch=master)](https://coveralls.io/r/micropython/micropython?branch=master)
 
 The MicroPython project

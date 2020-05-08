@@ -51,6 +51,8 @@
 #if !MICROPY_ESP_IDF_4
 #include "esp_wifi_types.h"
 #include "esp_event_loop.h"
+#else
+#include "lwip/lwip_napt.h"
 #endif
 
 #include "modnetwork.h"
@@ -136,6 +138,8 @@ static uint8_t wifi_sta_disconn_reason = 0;
 // Whether mDNS has been initialised or not
 static bool mdns_initialised = false;
 #endif
+
+static bool napt_enabled = false;
 
 // This function is called by the system-event task and so runs in a different
 // thread to the main MicroPython task.  It must not raise any Python exceptions.
@@ -318,6 +322,34 @@ STATIC mp_obj_t esp_active(size_t n_args, const mp_obj_t *args) {
 }
 
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(esp_active_obj, 1, 2, esp_active);
+
+#if MICROPY_ESP_IDF_4
+STATIC mp_obj_t esp_enable_napt(size_t n_args, const mp_obj_t *args) {
+    wlan_if_obj_t *self = MP_OBJ_TO_PTR(args[0]);
+    if (!(wifi_started && (self->if_id == WIFI_IF_AP))) {
+        mp_raise_ValueError(MP_ERROR_TEXT("wifi not started or not configured as AP"));
+    }
+    else {
+        if (n_args > 1) {
+        	bool active = mp_obj_is_true(args[1]);
+        	tcpip_adapter_ip_info_t info;
+    		tcpip_adapter_get_ip_info(self->if_id, &info);
+			u32_t napt_netif_ip = (&info.ip)->addr;
+			if (active) {
+				ip_napt_enable(napt_netif_ip, 1);
+				napt_enabled = true;
+
+			} else {
+				ip_napt_enable(napt_netif_ip, 0);
+				napt_enabled = false;
+			}
+    	}
+    }
+
+    return napt_enabled ? mp_const_true : mp_const_false;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(esp_enable_napt_obj, 1, 2, esp_enable_napt);
+#endif
 
 STATIC mp_obj_t esp_connect(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     enum { ARG_ssid, ARG_password, ARG_bssid };
@@ -534,6 +566,9 @@ STATIC mp_obj_t esp_ifconfig(size_t n_args, const mp_obj_t *args) {
                 }
                 ESP_EXCEPTIONS(tcpip_adapter_set_ip_info(WIFI_IF_AP, &info));
                 ESP_EXCEPTIONS(tcpip_adapter_set_dns_info(WIFI_IF_AP, TCPIP_ADAPTER_DNS_MAIN, &dns_info));
+
+                dhcps_offer_t opt_val = OFFER_DNS; // supply a dns server via dhcps
+    			ESP_EXCEPTIONS(tcpip_adapter_dhcps_option(TCPIP_ADAPTER_OP_SET, TCPIP_ADAPTER_DOMAIN_NAME_SERVER, &opt_val, 1));
                 ESP_EXCEPTIONS(tcpip_adapter_dhcps_start(WIFI_IF_AP));
             }
         } else {
@@ -728,6 +763,7 @@ STATIC const mp_rom_map_elem_t wlan_if_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_active), MP_ROM_PTR(&esp_active_obj) },
     { MP_ROM_QSTR(MP_QSTR_connect), MP_ROM_PTR(&esp_connect_obj) },
     { MP_ROM_QSTR(MP_QSTR_disconnect), MP_ROM_PTR(&esp_disconnect_obj) },
+    { MP_ROM_QSTR(MP_QSTR_enable_napt), MP_ROM_PTR(&esp_enable_napt_obj) },
     { MP_ROM_QSTR(MP_QSTR_status), MP_ROM_PTR(&esp_status_obj) },
     { MP_ROM_QSTR(MP_QSTR_scan), MP_ROM_PTR(&esp_scan_obj) },
     { MP_ROM_QSTR(MP_QSTR_isconnected), MP_ROM_PTR(&esp_isconnected_obj) },
@@ -755,8 +791,8 @@ STATIC const mp_rom_map_elem_t mp_module_network_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_WLAN), MP_ROM_PTR(&get_wlan_obj) },
     #if !MICROPY_ESP_IDF_4
     { MP_ROM_QSTR(MP_QSTR_LAN), MP_ROM_PTR(&get_lan_obj) },
-    { MP_ROM_QSTR(MP_QSTR_PPP), MP_ROM_PTR(&ppp_make_new_obj) },
     #endif
+    { MP_ROM_QSTR(MP_QSTR_PPP), MP_ROM_PTR(&ppp_make_new_obj) },
     { MP_ROM_QSTR(MP_QSTR_phy_mode), MP_ROM_PTR(&esp_phy_mode_obj) },
 
     #if MODNETWORK_INCLUDE_CONSTANTS

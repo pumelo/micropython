@@ -409,6 +409,8 @@ $(SDKCONFIG_H): $(SDKCONFIG_COMBINED)
 		--env "COMPONENT_KCONFIGS=$(ESPCOMP_KCONFIGS)" \
 		--env "COMPONENT_KCONFIGS_PROJBUILD=$(ESPCOMP_KCONFIGS_PROJBUILD)" \
 		--env "IDF_PATH=$(ESPIDF)"
+	echo "#define IP_FORWARD 1" >> $@
+	echo "#define IP_NAPT 1" >> $@
 	$(Q)touch $@
 
 $(HEADER_BUILD)/qstrdefs.generated.h: $(SDKCONFIG_H) $(BOARD_DIR)/mpconfigboard.h
