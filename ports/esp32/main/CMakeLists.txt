@@ -1,11 +1,11 @@
 # Set location of base MicroPython directory, and this port's directory.
 get_filename_component(MPY_DIR ${PROJECT_DIR}/../.. ABSOLUTE)
 set(MPY_PORT_DIR ${PROJECT_DIR})
-set(MPY_BOARD_DIR ${PROJECT_DIR}/boards/GENERIC)
+set(MPY_BOARD_DIR ${PROJECT_DIR}/boards/${MPY_BOARD})
 
 # Include core source components.
 include(${MPY_DIR}/py/micropy_py.cmake)
-include(${MPY_DIR}/py/micropy_extmod.cmake)
+include(${MPY_DIR}/extmod/micropy_extmod.cmake)
 
 set(SOURCE_EXTMOD_EXTRA
     ${MPY_DIR}/extmod/modonewire.c
